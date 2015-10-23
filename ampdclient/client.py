@@ -12,6 +12,33 @@ def parse_status(messages):
     return res
 
 
+def parse_lsinfo(message):
+    dirs = []
+    files = []
+    playlists = []
+    containers = {'directory': dirs,
+                  'file': files,
+                  'playlist': playlists}
+
+    pairs = [(a, b.strip()) for a, b in (m.split(':', 1) for m in message)]
+    item = {}
+    kind, name = None, None
+    for j in range(0, len(pairs)):
+        if pairs[j][0] in containers.keys():
+            if j != 0:
+                containers[kind].append((name, item))
+            item = {}
+            kind = pairs[j][0]
+            name = pairs[j][1]
+        else:
+            item[pairs[j][0]] = pairs[j][1]
+    if kind is not None:
+        containers[kind].append((name, item))
+
+    return dirs, files, playlists
+
+
+
 class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
     def __init__(self, host=None, port=None, timeout=10, loop=None):
