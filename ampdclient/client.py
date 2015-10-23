@@ -51,7 +51,9 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         return parse_status(resp)
 
     def lsinfo(self, path):
-        resp = yield from self.command(b'lsinfo ' + path)
+        resp = yield from self.command(b'lsinfo "' +
+                                       path.encode(encoding='UTF-8') +
+                                       b'"\n')
         return resp
 
     @asyncio.coroutine
@@ -115,7 +117,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
                 print('error ' + line)
                 break
             else:
-                message.append(line)
+                message.append(line[:-1].decode(encoding='UTF-8'))
         return message
 
     def client_connected(self, reader, writer):
