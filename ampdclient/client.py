@@ -1,5 +1,6 @@
 import asyncio
 
+#
 
 
 def parse_status(messages):
@@ -40,7 +41,7 @@ def parse_lsinfo(message):
 
 class MpdCommandException(Exception):
 
-    def __init__(self, message, error, line, command, msg ):
+    def __init__(self, message, error, line, command, msg):
 
         super(Exception, self).__init__(message)
 
@@ -78,27 +79,36 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
     @asyncio.coroutine
     def command(self, cmd):
         """
-        Send a command to mpd.
+        Send an arbitrary command to mpd.
+        This method raises a MpdCommandException if mpd returned a error.
 
-        :param cmd:
+        Example: `client.command(b'play')`
+
+        :param cmd:The command must be a bytes array. It it does not end with
+        `\n`, one will be added.
         :return:
         """
+        if cmd[-1] != '\n':
+            # make sure the command ends with \n, otherwise the client will
+            # block
+            cmd += '\n'
         yield from self._cmds.put(cmd)
         resp = yield from self._get_response()
         return resp
 
     @asyncio.coroutine
     def status(self):
-        resp = yield from self.command(b'status\n')
+        resp = yield from self.command(b'status')
         return parse_status(resp)
 
     @asyncio.coroutine
     def lsinfo(self, path):
         resp = yield from self.command(b'lsinfo "' +
                                        path.encode(encoding='UTF-8') +
-                                       b'"\n')
+                                       b'"')
         return resp
 
+    @asyncio.coroutine
     @asyncio.coroutine
     def _run(self):
 
@@ -106,14 +116,12 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         yield from self._welcome_msg()
 
         while True:
-            print('wait for change')
+
             yield from self._send_cmd(b'idle\n')
 
             f_resp = asyncio.async(self._read_response())
             f_cmd = asyncio.async(self._cmds.get())
 
-            done, pending = yield from asyncio.wait([f_resp, f_cmd],
-                            return_when=asyncio.FIRST_COMPLETED)
             done, pending = yield from \
                 asyncio.wait([f_resp, f_cmd],
                              return_when=asyncio.FIRST_COMPLETED)
@@ -125,18 +133,15 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
                     self.cb_onchange(msg)
 
             if f_cmd in done:
-                print('noidle')
+
                 yield from self._send_cmd(b'noidle\n')
                 yield from f_resp
 
                 cmd = f_cmd.result()
-                print('send cmd {}'.format(cmd))
                 yield from self._send_cmd(cmd)
                 response = yield from self._read_response()
-                print('Response {}'.format(response))
                 yield from self._responses.put(response)
             else:
-                print('No command')
                 f_cmd.cancel()
 
     @asyncio.coroutine
@@ -155,10 +160,11 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
     @asyncio.coroutine
     def _read_response(self):
+
         message = []
         while True:
             line = yield from self.reader.readline()
-            print('  lien read {}'.format(line))
+
             if line == '':
                 if self.reader.at_eof():
                     # when at eof, readline returns empty lines
@@ -166,11 +172,11 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
             elif line.startswith(b'OK'):
                 break
             elif line.startswith(b'ACK'):
-                print('error ' + line)
                 message.append(line[:-1].decode(encoding='UTF-8'))
                 break
             else:
                 message.append(line[:-1].decode(encoding='UTF-8'))
+
         return message
 
     @asyncio.coroutine
@@ -191,7 +197,6 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
                 msg = line[line.index('}')+1:]
                 raise MpdCommandException(line, error, l, command, msg)
         return resp
-
 
     def client_connected(self, reader, writer):
         # Callback from StreamReaderProtocol
