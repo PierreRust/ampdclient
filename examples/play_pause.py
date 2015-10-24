@@ -15,15 +15,15 @@ def start():
     while True:
         yield from asyncio.sleep(5)
         print('pausing')
-        yield from mpd_client.command(b'pause\n')
-        resp = yield from mpd_client.command(b'status\n')
-        print('Response {}'.format(resp) )
+        yield from mpd_client.command('pause')
+        resp = yield from mpd_client.command('status')
+        print('Response {}'.format(resp))
 
         yield from asyncio.sleep(5)
         print('playing')
-        yield from mpd_client.command(b'play\n')
-        resp = yield from mpd_client.command(b'status\n')
-        print('Response {}'.format(resp) )
+        yield from mpd_client.command('play')
+        resp = yield from mpd_client.command('status')
+        print('Response {}'.format(resp))
 
 
 loop = asyncio.get_event_loop()

@@ -16,7 +16,7 @@ def start():
     mpd_client.cb_onchange = onchange
 
     try:
-        resp = yield from mpd_client.command(b'foobar\n')
+        resp = yield from mpd_client.command('foobar')
 
         # This will never be displayed:
         print('No Mpd client Exception : {}'.format(resp))
@@ -27,9 +27,9 @@ def start():
     for i in range(4):
         status = yield from mpd_client.status()
         if status['state'] == 'pause':
-            yield from mpd_client.command(b'play\n')
+            yield from mpd_client.command('play')
         else:
-            yield from mpd_client.command(b'pause\n')
+            yield from mpd_client.command('pause')
         yield from asyncio.sleep(3)
 
     mpd_client.stop()

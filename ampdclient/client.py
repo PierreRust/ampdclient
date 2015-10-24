@@ -84,28 +84,27 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
         Example: `client.command(b'play')`
 
-        :param cmd:The command must be a bytes array. It it does not end with
+        :param cmd:The command must be a string. If it does not end with
         `\n`, one will be added.
         :return:
         """
-        if cmd[-1] != '\n':
+        cmd = cmd.encode(encoding='UTF-8')
+        if cmd[-1] != b'\n':
             # make sure the command ends with \n, otherwise the client will
             # block
-            cmd += '\n'
+            cmd += b'\n'
         yield from self._cmds.put(cmd)
         resp = yield from self._get_response()
         return resp
 
     @asyncio.coroutine
     def status(self):
-        resp = yield from self.command(b'status')
+        resp = yield from self.command('status')
         return parse_status(resp)
 
     @asyncio.coroutine
     def lsinfo(self, path):
-        resp = yield from self.command(b'lsinfo "' +
-                                       path.encode(encoding='UTF-8') +
-                                       b'"')
+        resp = yield from self.command('lsinfo "' + path + '"')
         return resp
 
     @asyncio.coroutine
