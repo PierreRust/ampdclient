@@ -32,7 +32,7 @@ def start():
             yield from mpd_client.command('pause')
         yield from asyncio.sleep(3)
 
-    mpd_client.stop()
+    yield from mpd_client.stop()
 
 
 loop = asyncio.get_event_loop()

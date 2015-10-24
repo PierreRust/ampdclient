@@ -72,6 +72,8 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         self._responses = asyncio.Queue(loop=loop)
         self._cmds = asyncio.Queue(loop=loop)
 
+        self.f_closed = asyncio.Future(loop=loop)
+
     @property
     def protocol_version(self):
         return self._protocol_version
@@ -108,6 +110,15 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         return resp
 
     @asyncio.coroutine
+    def stop(self):
+        # To stop, simply send an empty line to mpd, it will close the
+        # connection.
+        try:
+            yield from self.command('\n')
+        except MpdCommandException:
+            pass
+        yield from self.f_closed
+
     @asyncio.coroutine
     def _run(self):
 
@@ -212,6 +223,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         print('on worker {}'.format(future))
 
     def connection_lost(self, exc):
+        self.f_closed.set_result(True)
         print('LOST')
         pass
 
