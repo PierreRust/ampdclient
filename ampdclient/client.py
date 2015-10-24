@@ -38,6 +38,20 @@ def parse_lsinfo(message):
     return dirs, files, playlists
 
 
+class MpdCommandException(Exception):
+
+    def __init__(self, message, error, line, command, msg ):
+
+        super(Exception, self).__init__(message)
+
+        # error num
+        self.error = error
+        # line of the error in the command list
+        self.line = line
+        self.command = command
+        # Error message.
+        self.msg = msg
+
 
 class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
@@ -70,13 +84,15 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         :return:
         """
         yield from self._cmds.put(cmd)
-        resp = yield from self._responses.get()
+        resp = yield from self._get_response()
         return resp
 
+    @asyncio.coroutine
     def status(self):
         resp = yield from self.command(b'status\n')
         return parse_status(resp)
 
+    @asyncio.coroutine
     def lsinfo(self, path):
         resp = yield from self.command(b'lsinfo "' +
                                        path.encode(encoding='UTF-8') +
@@ -98,6 +114,9 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
             done, pending = yield from asyncio.wait([f_resp, f_cmd],
                             return_when=asyncio.FIRST_COMPLETED)
+            done, pending = yield from \
+                asyncio.wait([f_resp, f_cmd],
+                             return_when=asyncio.FIRST_COMPLETED)
 
             if f_resp in done:
                 # got a notification from our idle wait
@@ -108,7 +127,8 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
             if f_cmd in done:
                 print('noidle')
                 yield from self._send_cmd(b'noidle\n')
-                yield from f_resp # self._read_response()
+                yield from f_resp
+
                 cmd = f_cmd.result()
                 print('send cmd {}'.format(cmd))
                 yield from self._send_cmd(cmd)
@@ -138,14 +158,40 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         message = []
         while True:
             line = yield from self.reader.readline()
-            if line.startswith(b'OK'):
+            print('  lien read {}'.format(line))
+            if line == '':
+                if self.reader.at_eof():
+                    # when at eof, readline returns empty lines
+                    break
+            elif line.startswith(b'OK'):
                 break
             elif line.startswith(b'ACK'):
                 print('error ' + line)
+                message.append(line[:-1].decode(encoding='UTF-8'))
                 break
             else:
                 message.append(line[:-1].decode(encoding='UTF-8'))
         return message
+
+    @asyncio.coroutine
+    def _get_response(self):
+        """
+        Get the response from the response queue and raise an Exception if
+        mpd returned an error or failure.
+        :return:
+        """
+        resp = yield from self._responses.get()
+        if len(resp) == 1:
+            line = resp[0]
+            if line.startswith('ACK'):
+                i = line.index('@')
+                error = line[5:i]
+                l = line[i+1:line.index(']')]
+                command = line[line.index('{'):line.index('}')]
+                msg = line[line.index('}')+1:]
+                raise MpdCommandException(line, error, l, command, msg)
+        return resp
+
 
     def client_connected(self, reader, writer):
         # Callback from StreamReaderProtocol
