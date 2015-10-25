@@ -114,7 +114,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         return resp
 
     @asyncio.coroutine
-    def stop(self):
+    def close(self):
         try:
             yield from self.command('close')
         except MpdCommandException:

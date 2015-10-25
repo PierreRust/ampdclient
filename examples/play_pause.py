@@ -31,7 +31,7 @@ def start():
     except ampdclient.MpdCommandException as e:
         print('Exception for wrong pause argument: {}'.format(e))
 
-    yield from mpd_client.stop()
+    yield from mpd_client.close()
 
 
 loop = asyncio.get_event_loop()
