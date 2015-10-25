@@ -136,6 +136,50 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         return True
 
     @asyncio.coroutine
+    def next(self):
+        """
+        Plays next track in the playlist.
+        If the end of the playlist is reached, stops playing.
+        """
+        resp = yield from self.command('next')
+        return True
+
+    @asyncio.coroutine
+    def previous(self):
+        """
+        Plays previous track in the playlist.
+        If the beginning of the playlist is reached, stay on the first track
+        and keeps playing.
+        """
+        resp = yield from self.command('previous')
+        return True
+
+    @asyncio.coroutine
+    def play(self, songpos=None):
+        """
+        Begins playing the playlist at song number `songpos`. If songpos is
+        not given, starts playing at current position in the playlist.
+
+        TODO: implement songpos !
+
+        :param songpos: position in the playlist to start playing.
+        An `MpdCommandException` will be raised if this index is invalid
+        (out of range).
+        """
+        # TODO: implement songpos !
+        if songpos is None:
+            resp = yield from self.command('play')
+        return True
+
+    @asyncio.coroutine
+    def stop(self):
+        """
+        Stops playback.
+        """
+        resp = yield from self.command('stop')
+        return True
+
+    @asyncio.coroutine
     def _run(self):
 
         # first, wait for welcome message
