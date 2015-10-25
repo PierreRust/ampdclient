@@ -1,6 +1,9 @@
 import asyncio
 
-#
+
+# Constants for pause / resume
+PAUSE_ON = 1
+PAUSE_OFF = 0
 
 
 def parse_status(messages):
@@ -117,6 +120,20 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         except MpdCommandException:
             pass
         yield from self.f_stopped
+
+    @asyncio.coroutine
+    def pause(self, state):
+        """
+        Pause/resumes playing.
+        As the automatic pausing (with no argument) is decrecated in mpd's
+        protocole, the state argument is mandatory.
+        Returns True or raise an `MpdCommandException`
+
+        :param state: PAUSE_ON or PAUSE_OFF
+        :return:
+        """
+        resp = yield from self.command('pause '+str(state))
+        return True
 
     @asyncio.coroutine
     def _run(self):
