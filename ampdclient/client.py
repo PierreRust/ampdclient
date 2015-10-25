@@ -73,6 +73,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         self._cmds = asyncio.Queue(loop=loop)
 
         self.f_closed = asyncio.Future(loop=loop)
+        self.f_stopped = asyncio.Future(loop=loop)
 
     @property
     def protocol_version(self):
@@ -111,13 +112,11 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
     @asyncio.coroutine
     def stop(self):
-        # To stop, simply send an empty line to mpd, it will close the
-        # connection.
         try:
-            yield from self.command('\n')
+            yield from self.command('close')
         except MpdCommandException:
             pass
-        yield from self.f_closed
+        yield from self.f_stopped
 
     @asyncio.coroutine
     def _run(self):
@@ -125,7 +124,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         # first, wait for welcome message
         yield from self._welcome_msg()
 
-        while True:
+        while not self.f_closed.done():
 
             yield from self._send_cmd(b'idle\n')
 
@@ -133,8 +132,14 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
             f_cmd = asyncio.async(self._cmds.get())
 
             done, pending = yield from \
-                asyncio.wait([f_resp, f_cmd],
+                asyncio.wait([f_resp, f_cmd, self.f_closed],
                              return_when=asyncio.FIRST_COMPLETED)
+
+            if self.f_closed in done:
+                # The socked has be been closed, cancel pending tasks
+                f_cmd.cancel()
+                f_resp.cancel()
+                break
 
             if f_resp in done:
                 # got a notification from our idle wait
@@ -153,6 +158,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
                 yield from self._responses.put(response)
             else:
                 f_cmd.cancel()
+        self.f_stopped.set_result(True)
 
     @asyncio.coroutine
     def _welcome_msg(self):
@@ -172,12 +178,11 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
     def _read_response(self):
 
         message = []
-        while True:
+        while not self.f_closed.done():
             line = yield from self.reader.readline()
-
-            if line == '':
+            if line == b'':
                 if self.reader.at_eof():
-                    # when at eof, readline returns empty lines
+                    # When at eof, readline returns empty lines indefinitely.
                     break
             elif line.startswith(b'OK'):
                 break
@@ -223,8 +228,9 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         print('on worker {}'.format(future))
 
     def connection_lost(self, exc):
+        # When the connection is closed, signal closing,will still need to
+        # cancel the prnding task in _run for a clean stop.
         self.f_closed.set_result(True)
-        print('LOST')
         pass
 
 
