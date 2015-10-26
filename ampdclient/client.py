@@ -167,6 +167,24 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         range = _format_range(start, end)
         yield from self.command('load "{}" {}'.format(playlist, range))
         return True
+    def addid(self, uri):
+        """
+        Adds a track to the playlist (non-recursive) and returns the song id.
+
+        For example:
+        `trackid = client.addid( "foo.mp3")`
+
+        :param uri: an uri to a single file or an URL to a network stream.
+
+
+        :return: the song id in the play queue if the operation succeeded,
+        raises an MpdCommandException otherwise.
+        """
+        resp = yield from self.command('addid "{}"'.format(uri))
+        # format : ['Id: 854']
+        track_id = resp[0].split(':')[1].strip()
+        return track_id
+
     @asyncio.coroutine
     def pause(self, state):
         """
