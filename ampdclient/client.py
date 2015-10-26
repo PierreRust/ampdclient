@@ -110,8 +110,20 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
     @asyncio.coroutine
     def lsinfo(self, path):
+        """
+        list information.
+
+        :param path:
+        :return: a tuple (dirs, files, playlists) corresponding to the
+        content of the path.
+        dirs, files, playlists are arrays of tuples (path, info) where path
+        is the path, relative to the music directory, of the item and info is
+        a dictionnary of meta-data for this item.
+
+        """
         resp = yield from self.command('lsinfo "' + path + '"')
-        return resp
+        # TODO: improve return format, array of tuples of dict...
+        return parse_lsinfo(resp)
 
     @asyncio.coroutine
     def close(self):
