@@ -124,6 +124,10 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         return parse_status(resp)
 
     @asyncio.coroutine
+    def stats(self):
+        resp = yield from self.command('stats')
+        # TODO: used named tuple for stats info
+        return resp
     def lsinfo(self, path):
         """
         list information.
