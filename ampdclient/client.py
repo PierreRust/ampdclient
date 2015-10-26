@@ -42,6 +42,21 @@ def parse_lsinfo(message):
     return dirs, files, playlists
 
 
+def _format_range(start, end):
+    """
+    Build string for format specification.
+    used by many commands, like delete, load, etc...
+    :param start:
+    :param end:
+    :return: the string to be used for range in the command
+    """
+    if start is None:
+        return ''
+    if end is None:
+        return str(start)+':'
+    return str(start)+':'+str(end)
+
+
 class MpdCommandException(Exception):
 
     def __init__(self, message, error, line, command, msg):
@@ -133,6 +148,25 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
             pass
         yield from self.f_stopped
 
+    # Playlist
+
+    def load(self, playlist, start=None, end=None):
+        """
+        Load the playlist into the play queue.
+        :param playlist: it can either
+        * the name (without the .m3u suffix)of a stored playlist managed by
+        mpd (and hence stored inside the configured playlist directory)
+        * or the path, relative to the music directory, of a user playlist
+        * an uri to a remote playlist
+
+        In these last two cases, supported playlist formats depend on the
+        enabled playlist plugins.
+
+        :return:
+        """
+        range = _format_range(start, end)
+        yield from self.command('load "{}" {}'.format(playlist, range))
+        return True
     @asyncio.coroutine
     def pause(self, state):
         """
