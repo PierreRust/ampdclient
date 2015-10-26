@@ -6,17 +6,21 @@ PAUSE_ON = 1
 PAUSE_OFF = 0
 
 
-def parse_status(messages):
+def parse_lines_to_dict(lines):
     """
-    Parse the status message into a dictionnary.
-    :param messages:
-    :return:
+    Parse a list of message into a dictionnary.
+    Used for command like status and stats.
+
+    :param lines: an array of string where each item has the following format
+    'name: value'
+    :return: a dictionary with the names (as keys) and values found in the
+    lines.
     """
-    res = {k: v.strip() for k, v in (m.split(':', 1) for m in messages)}
+    res = {k: v.strip() for k, v in (m.split(':', 1) for m in lines)}
     return res
 
 
-def parse_lsinfo(message):
+def parse_lsinfo(lines):
     dirs = []
     files = []
     playlists = []
@@ -24,7 +28,7 @@ def parse_lsinfo(message):
                   'file': files,
                   'playlist': playlists}
 
-    pairs = [(a, b.strip()) for a, b in (m.split(':', 1) for m in message)]
+    pairs = [(a, b.strip()) for a, b in (m.split(':', 1) for m in lines)]
     item = {}
     kind, name = None, None
     for j in range(0, len(pairs)):
@@ -120,14 +124,16 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
     @asyncio.coroutine
     def status(self):
-        resp = yield from self.command('status')
-        return parse_status(resp)
+        lines = yield from self.command('status')
+        # TODO: used named tuple for status info
+        return parse_lines_to_dict(lines)
 
     @asyncio.coroutine
     def stats(self):
-        resp = yield from self.command('stats')
+        lines = yield from self.command('stats')
         # TODO: used named tuple for stats info
-        return resp
+        return parse_lines_to_dict(lines)
+
     def lsinfo(self, path):
         """
         list information.

@@ -10,7 +10,7 @@ class TestStatusParsing(unittest.TestCase):
     def test_parse_status(self):
 
         msg = ['1:a', '2: b', '3: c ']
-        res = c.parse_status(msg)
+        res = c.parse_lines_to_dict(msg)
 
         self.assertIn('1', res)
         self.assertIn('2', res)
@@ -23,7 +23,7 @@ class TestStatusParsing(unittest.TestCase):
     def test_parse_status2(self):
 
         msg = ['1:a:b:c']
-        res = c.parse_status(msg)
+        res = c.parse_lines_to_dict(msg)
 
         self.assertIn('1', res)
 
