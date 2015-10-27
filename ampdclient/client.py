@@ -465,7 +465,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
                 i = line.index('@')
                 error = line[5:i]
                 l = line[i+1:line.index(']')]
-                command = line[line.index('{'):line.index('}')]
+                command = line[line.index('{')+1:line.index('}')]
                 msg = line[line.index('}')+1:]
                 raise MpdCommandException(line, error, l, command, msg)
         return resp
