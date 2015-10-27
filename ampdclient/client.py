@@ -315,6 +315,16 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         track_range = _format_range(start, end)
         yield from self.command('delete {}'.format(track_range))
         return True
+
+    def deleteid(self, track_id):
+        """
+        Deletes the song `track_id` from the play queue.
+
+        :param track_id: the id of a song in the play queue
+        """
+        yield from self.command('deleteid {}'.format(track_id))
+        return True
+
     # Controlling playback : pause, next, previous, stop,
 
     @asyncio.coroutine
