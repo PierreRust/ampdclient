@@ -303,7 +303,6 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         will be removed.
         :return:
         """
-        range = 1
         track_range = _format_range(start, end)
         yield from self.command('delete {}'.format(track_range))
         return True
