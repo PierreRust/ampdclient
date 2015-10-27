@@ -186,8 +186,8 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
         :return:
         """
-        range = _format_range(start, end)
-        yield from self.command('load "{}" {}'.format(playlist, range))
+        track_range = _format_range(start, end)
+        yield from self.command('load "{}" {}'.format(playlist, track_range))
         return True
 
     # Play queue control
