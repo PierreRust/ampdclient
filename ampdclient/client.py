@@ -221,6 +221,36 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         lines = yield from self.command('playlistid {}'.format(track_id))
         return parse_playlist(lines)
 
+    def playlistinfo(self, pos=None):
+        """
+        Get information about track(s) in the play queue.
+
+        :param pos: optional, specifies the position of a single track to get
+        info for. If `pos` id not given or `None`, the info for all tracks is
+        returned.
+        :return: an array of tuples `(uri, attrs)` where `uri` is the uri of
+        the track and `attrs` is a dictionary with all attributes for the track.
+        The only attributes guaranteed to be in `attrs` are `Id` and `Pos`.
+        """
+        pos = '' if pos is None else pos
+        lines = yield from self.command('playlistinfo {}'.format(pos))
+        return parse_playlist(lines)
+
+    def playlistinfo_range(self, start, end=None):
+        """
+        Get information about track(s) in the play queue.
+
+        :param start: start of the range of the tracks.
+        :param end: optional, end of the range. If end is not given, info for
+        all tracks from start to the end of the play queue will be returned.
+        :return: an array of tuples `(uri, attrs)` where `uri` is the uri of
+        the track and `attrs` is a dictionary with all attributes for the track.
+        The only attributes guaranteed to be in `attrs` are `Id` and `Pos`.
+        """
+        track_range = _format_range(start, end)
+        lines = yield from self.command('playlistinfo {}'.format(track_range))
+        return parse_playlist(lines)
+
     def load(self, playlist, start=None, end=None):
         """
         Loads the playlist into the play queue.

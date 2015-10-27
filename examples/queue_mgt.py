@@ -91,6 +91,10 @@ def start(host, path):
     print('Track id: {}'.format(track_id))
     playqueue_content = yield from mpd_client.playlistid(track_id)
     print_pl(playqueue_content)
+    # same thing, but with the playlistinfo command, which takes a position
+    # instead of an id.
+    track_info = yield from mpd_client.playlistinfo(0)
+    print("Track info : {}".format(track_info))
 
     # Remove the first track in the play queue, by id
     yield from mpd_client.deleteid(track_id)
@@ -103,6 +107,21 @@ def start(host, path):
 
     playqueue_content = yield from mpd_client.playlistid()
     print_pl(playqueue_content)
+    print('Listing play queue with playlistinfo ')
+    playqueue_content = yield from mpd_client.playlistinfo()
+    for item in playqueue_content:
+        print('item {} - {}'.format(item[1]['Id'], item[0]))
+
+    print('Listing play queue with playlistinfo range 0 - 3')
+    playqueue_content = yield from mpd_client.playlistinfo_range(0, 3)
+    for item in playqueue_content:
+        print('item {} - {}'.format(item[1]['Id'], item[0]))
+
+    print('Listing play queue with playlistinfo range 3 -> end')
+    playqueue_content = yield from mpd_client.playlistinfo_range(3)
+    for item in playqueue_content:
+        print('item {} - {}'.format(item[1]['Id'], item[0]))
+
 
     # Clear the play queue
     yield from mpd_client.clear()
