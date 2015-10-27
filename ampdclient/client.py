@@ -207,13 +207,22 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
     # Playlist
 
     def playlistid(self, track_id=None):
+        """
+        Get information about track(s) in the play queue.
+
+        :param track_id: optional, specifies a single song to display info for.
+
+        :return: an array of tuples `(uri, attrs)` where `uri` is the uri of
+        the track and `attrs` is a dictionary with all attributes for the track.
+        The only attributes guaranteed to be in `attrs` are `Id` and `Pos`.
+        """
         track_id = '' if track_id is None else track_id
         lines = yield from self.command('playlistid {}'.format(track_id))
         return parse_playlist(lines)
 
     def load(self, playlist, start=None, end=None):
         """
-        Load the playlist into the play queue.
+        Loads the playlist into the play queue.
         :param playlist: it can either
         * the name (without the .m3u suffix)of a stored playlist managed by
         mpd (and hence stored inside the configured playlist directory)
