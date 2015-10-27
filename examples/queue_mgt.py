@@ -86,6 +86,10 @@ def start(host, path):
     playlist_content = yield from mpd_client.playlistid()
     print_pl(playlist_content)
 
+    track_id = playlist_content[0][1]['Id']
+    print('Track id: {}'.format(track_id))
+    playlist_content = yield from mpd_client.playlistid(track_id)
+    print_pl(playlist_content)
 
     # Clear the play queue
     yield from mpd_client.clear()
