@@ -134,6 +134,18 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         # TODO: used named tuple for stats info
         return parse_lines_to_dict(lines)
 
+    @asyncio.coroutine
+    def clearerror(self):
+        """
+        Clears the current error message in status.
+        This is also accomplished by any command that starts playback.
+
+        :return: True
+        """
+        yield from self.command('clearerror')
+        return True
+
+    @asyncio.coroutine
     def lsinfo(self, path):
         """
         list information.
