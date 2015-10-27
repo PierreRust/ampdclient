@@ -3,7 +3,7 @@ import sys
 import ampdclient
 
 
-# This script demonstrates the lsinfo, addid and load command.
+# This script demonstrates the lsinfo, add, addid and load command.
 # It can be called on with the host and the path as argument:
 #    `python queue_mgt.py 127.0.0.1 testpl`
 #
@@ -46,6 +46,14 @@ def start(host, path):
         except ampdclient.MpdCommandException as e:
 
             print('Could not enqueue file {} \n\t {}'.format(f[0], e))
+
+    for d in dirs:
+        try:
+            yield from mpd_client.add(d[0])
+            print('Dir added {} '.format(d[0]))
+
+        except ampdclient.MpdCommandException as e:
+            print('Could add directory {} \n\t {}'.format(d[0], e))
 
     yield from mpd_client.close()
 

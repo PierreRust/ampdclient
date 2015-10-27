@@ -189,6 +189,27 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         range = _format_range(start, end)
         yield from self.command('load "{}" {}'.format(playlist, range))
         return True
+
+    # Play queue control
+
+    def add(self, uri):
+        """
+        Adds the track(s) to the playlist.
+
+        :param uri: uri to directory, a single file or a network stream
+        File and directory uri are relative to the root of mpd's music
+        directory (and must not start with `/`).
+        If uri is a directory, all tracks are added recursively. Uri to
+        directories must NOT end with '/'.
+        When connecting locally (with the socket interface), a 'file://' uri
+        can be used to add local files outside the music directory.
+
+        :return: True is the add succeeded, raises an MpdCommandException
+        otherwise.
+        """
+        yield from self.command('add "{}"'.format(uri))
+        return True
+
     def addid(self, uri):
         """
         Adds a track to the playlist (non-recursive) and returns the song id.
@@ -206,6 +227,8 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         # format : ['Id: 854']
         track_id = resp[0].split(':')[1].strip()
         return track_id
+
+    # Controlling playback : pause, next, previous, stop,
 
     @asyncio.coroutine
     def pause(self, state):
