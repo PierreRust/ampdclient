@@ -210,7 +210,8 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         """
         Get information about track(s) in the play queue.
 
-        :param track_id: optional, specifies a single song to display info for.
+        :param track_id: optional, specifies a single track to display info for.
+        If `pos` id not given or `None`, the info for all tracks is returned.
 
         :return: an array of tuples `(uri, attrs)` where `uri` is the uri of
         the track and `attrs` is a dictionary with all attributes for the track.
