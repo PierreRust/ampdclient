@@ -65,43 +65,44 @@ def start(host, path):
         except ampdclient.MpdCommandException as e:
             print('Could add directory {} \n\t {}'.format(d[0], e))
 
-    playlist_content = yield from mpd_client.playlistid()
-    print_pl(playlist_content)
+    playqueue_content = yield from mpd_client.playlistid()
+    print_pl(playqueue_content)
 
-    # Removes first track in the playlist
+    # Removes first track in the play queue
     yield from mpd_client.delete_pos(0)
 
-    playlist_content = yield from mpd_client.playlistid()
-    print_pl(playlist_content)
+    playqueue_content = yield from mpd_client.playlistid()
+    print_pl(playqueue_content)
 
-    # Removes tracks with index 2, 3 and 4 in the playlist
+    # Removes tracks with index 2, 3 and 4 in the play queue
     yield from mpd_client.delete_range(2, 5)
 
-    playlist_content = yield from mpd_client.playlistid()
-    print_pl(playlist_content)
+    playqueue_content = yield from mpd_client.playlistid()
+    print_pl(playqueue_content)
 
-    # Removes all tracks from index 5 to the end of the playlist
+    # Removes all tracks from index 5 to the end of the play queue
     yield from mpd_client.delete_range(5)
 
-    playlist_content = yield from mpd_client.playlistid()
-    print_pl(playlist_content)
+    playqueue_content = yield from mpd_client.playlistid()
+    print_pl(playqueue_content)
 
-    track_id = playlist_content[0][1]['Id']
+    # Display info for the first track in the play queue
+    track_id = playqueue_content[0][1]['Id']
     print('Track id: {}'.format(track_id))
-    playlist_content = yield from mpd_client.playlistid(track_id)
-    print_pl(playlist_content)
+    playqueue_content = yield from mpd_client.playlistid(track_id)
+    print_pl(playqueue_content)
 
     # Remove the first track in the play queue, by id
     yield from mpd_client.deleteid(track_id)
     try:
-        playlist_content = yield from mpd_client.playlistid(track_id)
+        playqueue_content = yield from mpd_client.playlistid(track_id)
     except ampdclient.MpdCommandException as e:
         if e.command == 'playlistid':
             print("OK, track {} was removed from the play queue".
                   format(track_id))
 
-    playlist_content = yield from mpd_client.playlistid()
-    print_pl(playlist_content)
+    playqueue_content = yield from mpd_client.playlistid()
+    print_pl(playqueue_content)
 
     # Clear the play queue
     yield from mpd_client.clear()
