@@ -20,13 +20,25 @@ def parse_lines_to_dict(lines):
     return res
 
 
-def parse_lsinfo(lines):
-    dirs = []
-    files = []
-    playlists = []
-    containers = {'directory': dirs,
-                  'file': files,
-                  'playlist': playlists}
+def parse_to_dicts(lines, containers):
+    """
+    Parses a list of lines into tuples places in the given containers.
+
+    The lists of lines has the following format
+
+    token1: tval1
+    key1: val11
+    key2: val12
+    token1: tval2
+    key1: val21
+    key2: val22
+
+
+
+    :param lines:
+    :param containers: a dictionary { token : array_instance}
+    :return:
+    """
 
     pairs = [(a, b.strip()) for a, b in (m.split(':', 1) for m in lines)]
     item = {}
@@ -42,6 +54,28 @@ def parse_lsinfo(lines):
             item[pairs[j][0]] = pairs[j][1]
     if kind is not None:
         containers[kind].append((name, item))
+
+    return containers
+
+
+def parse_playlist(lines):
+    files = []
+    containers = {'file': files}
+
+    parse_to_dicts(lines, containers)
+
+    return files
+
+
+def parse_lsinfo(lines):
+    dirs = []
+    files = []
+    playlists = []
+    containers = {'directory': dirs,
+                  'file': files,
+                  'playlist': playlists}
+
+    parse_to_dicts(lines, containers)
 
     return dirs, files, playlists
 
@@ -171,6 +205,11 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         yield from self.f_stopped
 
     # Playlist
+
+    def playlistid(self, track_id=None):
+        track_id = '' if track_id is None else track_id
+        lines = yield from self.command('playlistid {}'.format(track_id))
+        return parse_playlist(lines)
 
     def load(self, playlist, start=None, end=None):
         """

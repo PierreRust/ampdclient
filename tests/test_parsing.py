@@ -163,3 +163,68 @@ class TestLsInfoParsing(unittest.TestCase):
         self.assertEqual('Arcade Fire', f1['AlbumArtist'])
         self.assertEqual('Funeral', f1['Album'])
         self.assertEqual('Neighborhood #1 (Tunnels)', f1['Title'])
+
+class TestPlaylistParsing(unittest.TestCase):
+
+    def test_parsepl(self):
+
+        lines = ['file: http://audio.scdn.arkena.com/11008/franceinter'
+                 '-midfi128.mp3',
+                 'Name: France Inter',
+                 'Time: 0',
+                 'Pos: 0',
+                 'Id: 1019',
+
+                 'file: http://www.rdl.de:8000/rdl',
+                 'Title: Radio Dreyeckland Livestream',
+                 'Pos: 1',
+                 'Id: 1020',
+
+                 'file: http://audio.scdn.arkena.com/11008/franceinter'
+                 '-midfi128.mp3',
+                 'Title: France Inter 128b',
+                 'Pos: 2',
+                 'Id: 1024',
+
+                 'file: testpl/Sunday Bloody Sunday.mp3',
+                 'Last-Modified: 2015-10-26T20:47:22Z',
+                 'Artist: U2',
+                 'AlbumArtist: Compil Classic Rock',
+                 'ArtistSort: U2',
+                 'Title: Sunday Bloody Sunday',
+                 'Album: Compil Classic Rock',
+                 'Track: 5/0',
+                 'Date: 0000',
+                 'Genre: Non-Album',
+                 'Disc: 0/0',
+                 'MUSICBRAINZ_ARTISTID: a3cb23fc-acd3-4ce0-8f36-1e5aa6a18432',
+                 'MUSICBRAINZ_TRACKID: f9fd2d50-c830-4a8a-9a2c-6ae86dbe0d2d',
+                 'Time: 279',
+                 'Pos: 3',
+                 'Id: 1025',
+
+                 'file: testpl/Dalida/Bambino.mp3',
+                 'Last-Modified: 2015-10-27T06:48:02Z',
+                 'Artist: Dalida',
+                 'AlbumArtist: Dalida',
+                 'ArtistSort: Dalida',
+                 'AlbumArtistSort: Dalida',
+                 'Title: Bambino',
+                 'Album: Best-of 1956-1965',
+                 'Track: 1/23',
+                 'Date: 0000',
+                 'Genre: Non-Album',
+                 'Composer: Nisa',
+                 'Disc: 0/0',
+                 'AlbumArtistSort: Dalida',
+                 'MUSICBRAINZ_ARTISTID: 1598ccda-b164-4bff-9821-f9ff5a8587a8',
+                 'MUSICBRAINZ_TRACKID: b4d566aa-46e0-4cbf-95ae-d1bde2c1f076',
+                 'Time: 211',
+                 'Pos: 4',
+                 'Id: 1026'
+                 ]
+
+        tracks = c.parse_playlist(lines)
+
+        self.assertEqual(5, len(tracks))
+        self.assertEqual('France Inter', tracks[0][1]['Name'])

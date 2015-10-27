@@ -20,6 +20,13 @@ def onchange(message):
     print('Message received ' + str(message))
 
 
+def print_pl(playlist_content):
+
+    for item in playlist_content:
+
+        print('item {} - {}'.format(item[1]['Id'], item[0]))
+
+
 @asyncio.coroutine
 def start(host, path):
     mpd_client = yield from ampdclient.connect(host, 6600)
@@ -58,14 +65,26 @@ def start(host, path):
         except ampdclient.MpdCommandException as e:
             print('Could add directory {} \n\t {}'.format(d[0], e))
 
+    playlist_content = yield from mpd_client.playlistid()
+    print_pl(playlist_content)
+
     # Removes first track in the playlist
     yield from mpd_client.delete_pos(0)
+
+    playlist_content = yield from mpd_client.playlistid()
+    print_pl(playlist_content)
 
     # Removes tracks with index 2, 3 and 4 in the playlist
     yield from mpd_client.delete_range(2, 5)
 
+    playlist_content = yield from mpd_client.playlistid()
+    print_pl(playlist_content)
+
     # Removes all tracks from index 5 to the end of the playlist
     yield from mpd_client.delete_range(5)
+
+    playlist_content = yield from mpd_client.playlistid()
+    print_pl(playlist_content)
 
 
     # Clear the play queue
