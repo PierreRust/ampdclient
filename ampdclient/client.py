@@ -238,6 +238,36 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         yield from self.command('clear')
         return True
 
+    def delete_pos(self, pos):
+        """
+        Removes track(s) in the playlist.
+
+        If start and end are both given and not None, removes all tracks
+        between start and end (not included).
+        If only start is given, the track at this position is removed.
+
+        :param pos: index of the track to be removed.
+        :return:
+        """
+        yield from self.command('delete {}'.format(pos))
+        return True
+
+    def delete_range(self, start, end=None):
+        """
+        Removes track(s) in the playlist.
+
+        Removes all tracks between start and end (not included).
+
+        :param start: start of the range of the tracks to be removed.
+        :param end: optional,end of the range of the tracks to be removed. If
+        end is not given, all tracks from start to the end of the playlist
+        will be removed.
+        :return:
+        """
+        range = 1
+        track_range = _format_range(start, end)
+        yield from self.command('delete {}'.format(track_range))
+        return True
     # Controlling playback : pause, next, previous, stop,
 
     @asyncio.coroutine

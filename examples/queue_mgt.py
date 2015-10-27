@@ -58,6 +58,16 @@ def start(host, path):
         except ampdclient.MpdCommandException as e:
             print('Could add directory {} \n\t {}'.format(d[0], e))
 
+    # Removes first track in the playlist
+    yield from mpd_client.delete_pos(0)
+
+    # Removes tracks with index 2, 3 and 4 in the playlist
+    yield from mpd_client.delete_range(2, 5)
+
+    # Removes all tracks from index 5 to the end of the playlist
+    yield from mpd_client.delete_range(5)
+
+
     # Clear the play queue
     yield from mpd_client.clear()
 
