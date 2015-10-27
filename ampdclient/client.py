@@ -228,6 +228,16 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         track_id = resp[0].split(':')[1].strip()
         return track_id
 
+    @asyncio.coroutine
+    def clear(self):
+        """
+        Clears the current play queue.
+
+        :return: True
+        """
+        yield from self.command('clear')
+        return True
+
     # Controlling playback : pause, next, previous, stop,
 
     @asyncio.coroutine

@@ -31,6 +31,7 @@ def start(host, path):
     print('content:\n\tdirs: {} \n\tfiles: {} \n\tplaylists: {}'
           .format(dirs, files, playlists))
 
+    # Add playlists in the play queue
     for p in playlists:
         try:
             yield from mpd_client.load(p[0])
@@ -39,6 +40,7 @@ def start(host, path):
             # Make sure
             print('Could not load playlist {} \n\t {}'.format(p[0], e))
 
+    # Add files in the play queue
     for f in files:
         try:
             f_id = yield from mpd_client.addid(f[0])
@@ -47,6 +49,7 @@ def start(host, path):
 
             print('Could not enqueue file {} \n\t {}'.format(f[0], e))
 
+    # Add (recursive) directories in the play queue
     for d in dirs:
         try:
             yield from mpd_client.add(d[0])
@@ -54,6 +57,9 @@ def start(host, path):
 
         except ampdclient.MpdCommandException as e:
             print('Could add directory {} \n\t {}'.format(d[0], e))
+
+    # Clear the play queue
+    yield from mpd_client.clear()
 
     yield from mpd_client.close()
 
