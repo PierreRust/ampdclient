@@ -260,6 +260,7 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
     def load(self, playlist, start=None, end=None):
         """
         Loads the playlist into the play queue.
+
         :param playlist: it can either
         * the name (without the .m3u suffix)of a stored playlist managed by
         mpd (and hence stored inside the configured playlist directory)
@@ -268,6 +269,9 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
 
         In these last two cases, supported playlist formats depend on the
         enabled playlist plugins.
+        :param start: start of the range.
+        :param end: optional, end of the range. If end is not given, all tracks
+        from start to the end of the playlist queue will be added.
 
         :return:
         """
