@@ -430,6 +430,17 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         resp = yield from self.command('consume {}'.format(consume_mode))
         return True
 
+    @asyncio.coroutine
+    def random(self, random_mode):
+        """
+        Sets random mode to random_mode, should be RANDOM_ON or RANDOM_OFF.
+
+        :param random_mode: random mode.
+        """
+        resp = yield from self.command('random {}'.format(random_mode))
+        return True
+
+    @asyncio.coroutine
     def _run(self):
 
         # first, wait for welcome message
