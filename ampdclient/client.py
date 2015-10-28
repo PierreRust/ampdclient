@@ -5,6 +5,9 @@ import asyncio
 PAUSE_ON = 1
 PAUSE_OFF = 0
 
+CONSUME_ON = 1
+CONSUME_OFF = 0
+
 
 def parse_lines_to_dict(lines):
     """
@@ -417,6 +420,16 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         return True
 
     @asyncio.coroutine
+    def consume(self, consume_mode):
+        """
+        Sets consume mode to consume_mode, should be CONSUME_ON or CONSUME_OFF.
+        When consume is activated, each song played is removed from playlist.
+
+        :param consume_mode: consume mode.
+        """
+        resp = yield from self.command('consume {}'.format(consume_mode))
+        return True
+
     def _run(self):
 
         # first, wait for welcome message
