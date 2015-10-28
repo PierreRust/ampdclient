@@ -8,6 +8,9 @@ PAUSE_OFF = 0
 CONSUME_ON = 1
 CONSUME_OFF = 0
 
+RANDOM_ON = 1
+RANDOM_OFF = 0
+
 
 def parse_lines_to_dict(lines):
     """
@@ -428,6 +431,16 @@ class MpdClientProtocol(asyncio.StreamReaderProtocol):
         :param consume_mode: consume mode.
         """
         resp = yield from self.command('consume {}'.format(consume_mode))
+        return True
+
+    @asyncio.coroutine
+    def crossfade(self, seconds):
+        """
+        Sets crossfading between songs.
+
+        :param seconds: length of the cross-fading
+        """
+        resp = yield from self.command('crossfade {}'.format(seconds))
         return True
 
     @asyncio.coroutine
